@@ -27,7 +27,6 @@ Represents a single job application record.
 - `source`: optional string
 - `applicationDate`: required date
 - `currentStageId`: foreign key to `StageDefinition`
-- `outcome`: optional enum value such as `OFFER`, `REJECTED`, `WITHDRAWN`
 - `notes`: optional text
 - `nextFollowUpDate`: optional date
 - `archived`: boolean flag
@@ -38,7 +37,7 @@ Represents a single job application record.
 - Company and position are required.
 - Application date is required.
 - Current stage must belong to a defined stage list.
-- Outcome is only valid when the application reaches a terminal state.
+- If the current stage is terminal (`Offer`, `Rejected`, or `Withdrawn`), the application outcome is derived from that stage; no separate persistent `outcome` field is stored.
 
 ### StageDefinition
 
