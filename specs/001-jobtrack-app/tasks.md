@@ -8,10 +8,10 @@
 
 **Purpose**: Create the initial backend/frontend project structure and toolchain.
 
-- [ ] T001 Create backend and frontend project structure in backend/ and frontend/
-- [ ] T002 Initialize Spring Boot 3.x and Java 21 backend dependencies in backend/pom.xml
-- [ ] T003 [P] Initialize Vue 3 and Vite frontend dependencies in frontend/package.json
-- [ ] T004 [P] Configure linting, formatting, and test tooling in backend/pom.xml and frontend/package.json
+- [X] T001 Create backend and frontend project structure in backend/ and frontend/
+- [X] T002 Initialize Spring Boot 3.x and Java 21 backend dependencies in backend/pom.xml
+- [X] T003 [P] Initialize Vue 3 and Vite frontend dependencies in frontend/package.json
+- [X] T004 [P] Configure linting, formatting, and test tooling in backend/pom.xml and frontend/package.json
 
 ---
 
@@ -19,11 +19,11 @@
 
 **Purpose**: Establish shared domain, persistence, security, and API infrastructure before story work begins.
 
-- [ ] T005 Create database configuration and environment profiles in backend/src/main/resources/application.yml
-- [ ] T006 Implement authentication and JWT security flow in backend/src/main/java/com/jobtrack/auth/
-- [ ] T007 [P] Implement shared domain entities, repositories, and validation in backend/src/main/java/com/jobtrack/
-- [ ] T008 [P] Set up API routing, DTOs, and global error handling in backend/src/main/java/com/jobtrack/common/
-- [ ] T009 Configure logging and observability hooks in backend/src/main/java/com/jobtrack/common/
+- [X] T005 Create database configuration and environment profiles in backend/src/main/resources/application.yml
+- [X] T006 Implement authentication and JWT security flow in backend/src/main/java/com/jobtrack/auth/
+- [X] T007 [P] Implement shared domain entities, repositories, and validation in backend/src/main/java/com/jobtrack/
+- [X] T008 [P] Set up API routing, DTOs, and global error handling in backend/src/main/java/com/jobtrack/common/
+- [X] T009 Configure logging and observability hooks in backend/src/main/java/com/jobtrack/common/
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
