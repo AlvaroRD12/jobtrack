@@ -3,7 +3,9 @@ package com.jobtrack.applications;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -20,34 +22,41 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/applications")
 public class ApplicationController {
 
-    private final ApplicationRepository repository;
+    private final ApplicationService applicationService;
 
-    public ApplicationController(ApplicationRepository repository) {
-        this.repository = repository;
+    public ApplicationController(ApplicationService applicationService) {
+        this.applicationService = applicationService;
     }
 
     @GetMapping
     public ApiResponse<List<ApplicationEntity>> list() {
-        return ApiResponse.ok(repository.findAll());
+        return ApiResponse.ok(applicationService.listForCurrentUser());
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<ApplicationEntity> get(@PathVariable Long id) {
+        return ApiResponse.ok(applicationService.getForCurrentUser(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ApiResponse<ApplicationEntity> create(@Valid @RequestBody ApplicationEntity application) {
-        return ApiResponse.ok("Application created", repository.save(application));
+    public ApiResponse<ApplicationEntity> create(@Valid @RequestBody ApplicationRequest request) {
+        return ApiResponse.ok("Application created", applicationService.create(request));
     }
 
     @PutMapping("/{id}")
-    public ApiResponse<ApplicationEntity> update(@PathVariable Long id, @Valid @RequestBody ApplicationEntity payload) {
-        ApplicationEntity existing = repository.findById(id).orElseThrow(() -> new IllegalArgumentException("Application not found"));
-        existing.setCompany(payload.getCompany());
-        existing.setPosition(payload.getPosition());
-        existing.setSource(payload.getSource());
-        existing.setApplicationDate(payload.getApplicationDate());
-        existing.setStage(payload.getStage());
-        existing.setOutcome(payload.getOutcome());
-        existing.setNotes(payload.getNotes());
-        existing.setFollowUpDate(payload.getFollowUpDate());
-        return ApiResponse.ok("Application updated", repository.save(existing));
+    public ApiResponse<ApplicationEntity> update(@PathVariable Long id, @Valid @RequestBody ApplicationRequest request) {
+        return ApiResponse.ok("Application updated", applicationService.update(id, request));
+    }
+
+    @PatchMapping("/{id}/archive")
+    public ApiResponse<ApplicationEntity> archive(@PathVariable Long id, @RequestBody ArchiveRequest request) {
+        return ApiResponse.ok("Application archived", applicationService.archive(id, request.archived()));
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        applicationService.delete(id);
+        return ApiResponse.ok("Application deleted", null);
     }
 }

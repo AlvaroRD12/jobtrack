@@ -1,9 +1,10 @@
 <template>
   <main class="app-shell">
     <h1>JobTrack</h1>
-    <p>Foundational frontend shell is ready.</p>
+    <ApplicationsView />
   </main>
 </template>
 
 <script setup lang="ts">
+import ApplicationsView from './views/ApplicationsView.vue';
 </script>

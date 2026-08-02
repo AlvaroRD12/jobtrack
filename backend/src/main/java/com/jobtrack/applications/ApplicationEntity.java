@@ -2,6 +2,7 @@ package com.jobtrack.applications;
 
 import java.time.LocalDate;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,13 +18,15 @@ public class ApplicationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
+    private Long userId;
+
     @NotBlank
     private String company;
 
     @NotBlank
     private String position;
 
-    @NotBlank
     private String source;
 
     @NotNull
@@ -31,14 +34,22 @@ public class ApplicationEntity {
 
     private String stage = "Applied";
 
-    private String outcome;
-
     private String notes;
 
     private LocalDate followUpDate;
 
+    private boolean archived = false;
+
     public Long getId() {
         return id;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getCompany() {
@@ -81,14 +92,6 @@ public class ApplicationEntity {
         this.stage = stage;
     }
 
-    public String getOutcome() {
-        return outcome;
-    }
-
-    public void setOutcome(String outcome) {
-        this.outcome = outcome;
-    }
-
     public String getNotes() {
         return notes;
     }
@@ -103,5 +106,13 @@ public class ApplicationEntity {
 
     public void setFollowUpDate(LocalDate followUpDate) {
         this.followUpDate = followUpDate;
+    }
+
+    public boolean isArchived() {
+        return archived;
+    }
+
+    public void setArchived(boolean archived) {
+        this.archived = archived;
     }
 }

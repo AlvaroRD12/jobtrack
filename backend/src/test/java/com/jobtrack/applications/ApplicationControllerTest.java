@@ -1,14 +1,11 @@
 package com.jobtrack.applications;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -28,9 +25,6 @@ class ApplicationControllerTest {
     private ObjectMapper objectMapper;
 
     @Autowired
-    private AuthenticationManager authenticationManager;
-
-    @Autowired
     private UserRepository userRepository;
 
     @BeforeEach
@@ -40,21 +34,16 @@ class ApplicationControllerTest {
 
     @Test
     void shouldListApplications() throws Exception {
-        mockMvc.perform(get("/api/applications"))
+        String token = registerAndLoginToken();
+
+        mockMvc.perform(get("/api/applications")
+                        .header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());
     }
 
     @Test
     void shouldCreateApplication() throws Exception {
-        mockMvc.perform(post("/api/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"username\":\"demo\",\"password\":\"demo123\"}"))
-                .andExpect(status().isCreated());
-
-        var authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken("demo", "demo123")
-        );
-        assertTrue(authentication.isAuthenticated());
+        String token = registerAndLoginToken();
 
         ApplicationEntity application = new ApplicationEntity();
         application.setCompany("Example Corp");
@@ -63,8 +52,26 @@ class ApplicationControllerTest {
         application.setApplicationDate(java.time.LocalDate.now());
 
         mockMvc.perform(post("/api/applications")
+                        .header("Authorization", "Bearer " + token)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(application)))
                 .andExpect(status().isCreated());
+    }
+
+    private String registerAndLoginToken() throws Exception {
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"demo\",\"password\":\"demo123\"}"))
+                .andExpect(status().isCreated());
+
+        String loginBody = mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"username\":\"demo\",\"password\":\"demo123\"}"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return objectMapper.readTree(loginBody).path("data").asText();
     }
 }

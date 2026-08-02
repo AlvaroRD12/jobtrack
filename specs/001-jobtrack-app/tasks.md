@@ -37,16 +37,16 @@
 
 ### Tests for User Story 1
 
-- [ ] T010 [P] [US1] Add backend integration tests for application create/edit flows in backend/src/test/java/com/jobtrack/applications/ApplicationApiTest.java
-- [ ] T011 [P] [US1] Add frontend interaction tests for the create/edit workflow in frontend/src/views/__tests__/ApplicationsView.test.ts
+- [X] T010 [P] [US1] Add backend integration tests for application create/edit flows in backend/src/test/java/com/jobtrack/applications/ApplicationApiTest.java
+- [X] T011 [P] [US1] Add frontend interaction tests for the create/edit workflow in frontend/src/views/__tests__/ApplicationsView.test.ts
 
 ### Implementation for User Story 1
 
-- [ ] T012 [P] [US1] Implement Application and StageDefinition persistence models in backend/src/main/java/com/jobtrack/applications/ and backend/src/main/java/com/jobtrack/stages/
-- [ ] T013 [US1] Implement application service and validation rules in backend/src/main/java/com/jobtrack/applications/ApplicationService.java
-- [ ] T014 [US1] Implement application CRUD API endpoints in backend/src/main/java/com/jobtrack/applications/ApplicationController.java
-- [ ] T015 [US1] Implement application list and form UI in frontend/src/views/ApplicationListView.vue and frontend/src/components/application/ApplicationForm.vue
-- [ ] T016 [US1] Wire frontend API client for application CRUD in frontend/src/api/applications.ts
+- [X] T012 [P] [US1] Implement Application and StageDefinition persistence models in backend/src/main/java/com/jobtrack/applications/ and backend/src/main/java/com/jobtrack/stages/
+- [X] T013 [US1] Implement application service and validation rules in backend/src/main/java/com/jobtrack/applications/ApplicationService.java
+- [X] T014 [US1] Implement application CRUD API endpoints in backend/src/main/java/com/jobtrack/applications/ApplicationController.java
+- [X] T015 [US1] Implement application list and form UI in frontend/src/views/ApplicationListView.vue and frontend/src/components/application/ApplicationForm.vue
+- [X] T016 [US1] Wire frontend API client for application CRUD in frontend/src/api/applications.ts
 
 **Checkpoint**: User Story 1 should be fully functional and independently testable.
 
