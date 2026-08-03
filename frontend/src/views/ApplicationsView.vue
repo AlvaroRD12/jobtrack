@@ -1,6 +1,13 @@
 <template>
   <section class="applications-view">
     <h1>Applications</h1>
+
+    <form class="login-form" @submit.prevent="login">
+      <input v-model="auth.username" placeholder="Username" required />
+      <input v-model="auth.password" type="password" placeholder="Password" required />
+      <button type="submit">Log in</button>
+    </form>
+
     <form @submit.prevent="submitForm" class="application-form">
       <input v-model="form.company" placeholder="Company" required />
       <input v-model="form.position" placeholder="Position" required />
@@ -12,19 +19,16 @@
       <button type="submit">Save</button>
     </form>
 
-    <ul v-if="applications.length" class="application-list">
-      <li v-for="application in applications" :key="application.id">
-        <strong>{{ application.company }}</strong> — {{ application.position }}
-        <span v-if="application.archived">(archived)</span>
-      </li>
-    </ul>
+    <KanbanBoard v-if="applications.length" :applications="applications" />
     <p v-else>No applications yet.</p>
   </section>
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue';
-import { archiveApplication, createApplication, deleteApplication, listApplications, updateApplication } from '../api/applications';
+import { archiveApplication, createApplication, deleteApplication, listApplications } from '../api/applications';
+import { apiClient, getStoredAuthToken, setAuthToken } from '../lib/api';
+import KanbanBoard from '../components/kanban/KanbanBoard.vue';
 
 interface ApplicationRecord {
   id?: number;
@@ -39,6 +43,10 @@ interface ApplicationRecord {
 }
 
 const applications = ref<ApplicationRecord[]>([]);
+const auth = reactive({
+  username: '',
+  password: ''
+});
 const form = reactive<ApplicationRecord>({
   company: '',
   position: '',
@@ -51,7 +59,18 @@ const form = reactive<ApplicationRecord>({
 
 async function loadApplications() {
   const response = await listApplications();
-  applications.value = response.data ?? [];
+  applications.value = response?.data ?? [];
+}
+
+async function login() {
+  const response = await apiClient.post('/auth/login', {
+    username: auth.username,
+    password: auth.password
+  });
+
+  const token = response.data?.data;
+  setAuthToken(token ?? null);
+  await loadApplications();
 }
 
 async function submitForm() {
@@ -66,7 +85,8 @@ async function submitForm() {
   };
 
   const response = await createApplication(payload);
-  applications.value.push(response.data);
+  const createdApplication = response?.data?.data ?? response?.data ?? response;
+  applications.value.push(createdApplication);
   resetForm();
 }
 
@@ -93,5 +113,9 @@ function resetForm() {
   form.nextFollowUpDate = '';
 }
 
-onMounted(loadApplications);
+onMounted(async () => {
+  if (getStoredAuthToken()) {
+    await loadApplications();
+  }
+});
 </script>

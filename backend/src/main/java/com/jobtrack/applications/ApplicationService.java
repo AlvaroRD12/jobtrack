@@ -10,16 +10,23 @@ import org.springframework.transaction.annotation.Transactional;
 import com.jobtrack.auth.UserEntity;
 import com.jobtrack.auth.UserRepository;
 import com.jobtrack.common.AccessDeniedException;
+import com.jobtrack.stages.StageService;
 
 @Service
 public class ApplicationService {
 
     private final ApplicationRepository applicationRepository;
     private final UserRepository userRepository;
+    private final StageService stageService;
 
-    public ApplicationService(ApplicationRepository applicationRepository, UserRepository userRepository) {
+    public ApplicationService(
+            ApplicationRepository applicationRepository,
+            UserRepository userRepository,
+            StageService stageService
+    ) {
         this.applicationRepository = applicationRepository;
         this.userRepository = userRepository;
+        this.stageService = stageService;
     }
 
     @Transactional(readOnly = true)
@@ -54,6 +61,14 @@ public class ApplicationService {
     public ApplicationEntity archive(Long id, boolean archived) {
         ApplicationEntity entity = getForCurrentUser(id);
         entity.setArchived(archived);
+        return applicationRepository.save(entity);
+    }
+
+    @Transactional
+    public ApplicationEntity updateStage(Long id, String stage) {
+        ApplicationEntity entity = getForCurrentUser(id);
+        String normalizedStage = stageService.normalizeStage(stage);
+        entity.setStage(normalizedStage);
         return applicationRepository.save(entity);
     }
 

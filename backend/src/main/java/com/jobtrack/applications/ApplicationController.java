@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.jobtrack.common.ApiResponse;
+import com.jobtrack.stages.StageRequest;
 
 import jakarta.validation.Valid;
 
@@ -52,6 +53,16 @@ public class ApplicationController {
     @PatchMapping("/{id}/archive")
     public ApiResponse<ApplicationEntity> archive(@PathVariable Long id, @RequestBody ArchiveRequest request) {
         return ApiResponse.ok("Application archived", applicationService.archive(id, request.archived()));
+    }
+
+    @PutMapping("/{id}/stage")
+    public ApiResponse<ApplicationEntity> updateStage(@PathVariable Long id, @Valid @RequestBody StageRequest request) {
+        return ApiResponse.ok("Application stage updated", applicationService.updateStage(id, request.stage()));
+    }
+
+    @PatchMapping("/{id}/stage")
+    public ApiResponse<ApplicationEntity> updateStagePatch(@PathVariable Long id, @Valid @RequestBody StageRequest request) {
+        return ApiResponse.ok("Application stage updated", applicationService.updateStage(id, request.stage()));
     }
 
     @DeleteMapping("/{id}")

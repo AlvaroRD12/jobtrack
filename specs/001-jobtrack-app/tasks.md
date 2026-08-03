@@ -60,16 +60,16 @@
 
 ### Tests for User Story 2
 
-- [ ] T017 [P] [US2] Add backend stage-transition tests in backend/src/test/java/com/jobtrack/stages/StageTransitionTest.java
-- [ ] T018 [P] [US2] Add frontend drag-and-drop interaction tests in frontend/src/components/kanban/__tests__/KanbanBoard.test.ts
+- [X] T017 [P] [US2] Add backend stage-transition tests in backend/src/test/java/com/jobtrack/stages/StageTransitionTest.java
+- [X] T018 [P] [US2] Add frontend drag-and-drop interaction tests in frontend/src/components/kanban/__tests__/KanbanBoard.test.ts
 
 ### Implementation for User Story 2
 
-- [ ] T019 [P] [US2] Implement stage catalog and repository support in backend/src/main/java/com/jobtrack/stages/
-- [ ] T020 [US2] Implement stage transition rules and terminal-stage handling in backend/src/main/java/com/jobtrack/stages/StageService.java
-- [ ] T021 [US2] Implement the application stage update endpoint in backend/src/main/java/com/jobtrack/applications/ApplicationController.java
-- [ ] T022 [US2] Build the kanban board UI and drag-and-drop handlers in frontend/src/components/kanban/KanbanBoard.vue
-- [ ] T023 [US2] Wire stage update requests in frontend/src/services/kanban.ts
+- [X] T019 [P] [US2] Implement stage catalog and repository support in backend/src/main/java/com/jobtrack/stages/
+- [X] T020 [US2] Implement stage transition rules and terminal-stage handling in backend/src/main/java/com/jobtrack/stages/StageService.java
+- [X] T021 [US2] Implement the application stage update endpoint in backend/src/main/java/com/jobtrack/applications/ApplicationController.java
+- [X] T022 [US2] Build the kanban board UI and drag-and-drop handlers in frontend/src/components/kanban/KanbanBoard.vue
+- [X] T023 [US2] Wire stage update requests in frontend/src/services/kanban.ts
 
 **Checkpoint**: User Stories 1 and 2 should both work independently.
 

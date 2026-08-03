@@ -1,30 +1,26 @@
-import axios from 'axios';
-
-const client = axios.create({
-  baseURL: '/api'
-});
+import { apiClient } from '../lib/api';
 
 export async function listApplications() {
-  const response = await client.get('/applications');
+  const response = await apiClient.get('/applications');
   return response.data;
 }
 
 export async function createApplication(payload: Record<string, unknown>) {
-  const response = await client.post('/applications', payload);
+  const response = await apiClient.post('/applications', payload);
   return response.data;
 }
 
 export async function updateApplication(id: number, payload: Record<string, unknown>) {
-  const response = await client.put(`/applications/${id}`, payload);
+  const response = await apiClient.put(`/applications/${id}`, payload);
   return response.data;
 }
 
 export async function archiveApplication(id: number, archived: boolean) {
-  const response = await client.patch(`/applications/${id}/archive`, { archived });
+  const response = await apiClient.patch(`/applications/${id}/archive`, { archived });
   return response.data;
 }
 
 export async function deleteApplication(id: number) {
-  const response = await client.delete(`/applications/${id}`);
+  const response = await apiClient.delete(`/applications/${id}`);
   return response.data;
 }
