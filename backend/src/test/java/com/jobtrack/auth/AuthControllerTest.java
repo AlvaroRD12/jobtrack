@@ -60,4 +60,35 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(badRequest)))
                 .andExpect(status().isUnauthorized());
     }
+
+    @Test
+    void publicLoginEndpointAcceptsRequestWithExpiredToken() throws Exception {
+        // Register a user
+        RegisterRequest registerRequest = new RegisterRequest("test", "test");
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isCreated());
+
+        // Attempt login with an expired/garbage token in Authorization header
+        // but with valid credentials in the body
+        AuthRequest loginRequest = new AuthRequest("test", "test");
+        mockMvc.perform(post("/api/auth/login")
+                        .header("Authorization", "Bearer expired.jwt.token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(result -> {
+                    String contentAsString = result.getResponse().getContentAsString();
+                    // Expect a JSON response with a non-empty data field (the token)
+                    org.junit.jupiter.api.Assertions.assertTrue(contentAsString.contains("\"data\""), "Response should contain a data field with the token");
+                });
+
+        // Ensure that login with invalid password (no token) still returns 401
+        AuthRequest badPasswordRequest = new AuthRequest("test", "wrong-password");
+        mockMvc.perform(post("/api/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(badPasswordRequest)))
+                .andExpect(status().isUnauthorized());
+    }
 }

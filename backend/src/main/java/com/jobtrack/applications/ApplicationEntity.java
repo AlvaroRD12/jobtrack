@@ -2,12 +2,14 @@ package com.jobtrack.applications;
 
 import java.time.LocalDate;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
@@ -36,7 +38,7 @@ public class ApplicationEntity {
 
     private String notes;
 
-    private LocalDate followUpDate;
+    private LocalDate nextFollowUpDate;
 
     private boolean archived = false;
 
@@ -101,11 +103,11 @@ public class ApplicationEntity {
     }
 
     public LocalDate getFollowUpDate() {
-        return followUpDate;
+        return nextFollowUpDate;
     }
 
-    public void setFollowUpDate(LocalDate followUpDate) {
-        this.followUpDate = followUpDate;
+    public void setFollowUpDate(LocalDate nextFollowUpDate) {
+        this.nextFollowUpDate = nextFollowUpDate;
     }
 
     public boolean isArchived() {
@@ -114,5 +116,10 @@ public class ApplicationEntity {
 
     public void setArchived(boolean archived) {
         this.archived = archived;
+    }
+
+    @Transient
+    public boolean isOverdue() {
+        return nextFollowUpDate != null && nextFollowUpDate.isBefore(LocalDate.now());
     }
 }
