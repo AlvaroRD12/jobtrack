@@ -135,6 +135,41 @@ directly, rather than accepting "the code is present" as equivalent to
 through a single axios instance with a request interceptor that attaches
 the stored token.
 
+### 7. Frontend field name mismatch silently overriding correct backend data (User Story 3)
+
+The backend correctly computed and returned `overdue: true/false` via a
+`@Transient isOverdue()` method. But the frontend's `loadApplications()`
+recomputed `overdue` itself from `app.nextFollowUpDate` — a field that
+doesn't exist on the response object (the real field is `followUpDate`).
+The mismatch meant the recomputed value was always `false`, silently
+overwriting the backend's correct value. No error, no crash — every
+application just always looked "not overdue," including ones that were.
+
+**Found by**: comparing the field names in a real, previously-verified
+API response against what the frontend code was actually reading —
+not by re-testing the backend, which was already known to be correct.
+**Fixed by**: removing the frontend recomputation entirely and trusting
+the backend's `overdue` field directly, since duplicating trivial derived
+logic across two layers is exactly the kind of thing that drifts out of
+sync.
+
+### 8. JWT filter rejecting public routes because of a stale token (User Story 3)
+
+Logging in through the actual browser UI failed with `401 "Invalid or
+expired token"` — but this had nothing to do with the login credentials.
+`JwtAuthenticationFilter` was validating the `Authorization` header on
+*every* request, including `/api/auth/login` and `/api/auth/register`,
+which don't require authentication at all. Any stale token left in
+`localStorage` from a previous session (e.g. after an H2 in-memory
+database reset on backend restart) was enough to block login entirely.
+
+**Found by**: reproducing the failure through the real UI instead of only
+testing the API directly with curl, where no stale browser token exists
+to trigger the bug.
+**Fixed by**: moving the public-route check (`/api/auth/**`) to the very
+start of the filter, before any token parsing happens, so those routes
+are never affected by whatever the client happens to send.
+
 ## Why this matters
 
 None of these were exotic bugs. Each one is the kind of thing a code
