@@ -1,6 +1,6 @@
 <template>
   <main class="app-shell">
-    <h1>JobTrack</h1>
+    <h1>JobTrack - Test</h1>
     <nav class="navbar">
       <router-link to="/" class="nav-link">Applications</router-link>
       <router-link to="/dashboard" class="nav-link">Dashboard</router-link>
