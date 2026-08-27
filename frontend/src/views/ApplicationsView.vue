@@ -8,7 +8,7 @@
       <button type="submit">Log in</button>
     </form>
 
-    <form @submit.prevent="submitForm" class="application-form">
+    <form @submit.prevent="submitForm" class="application-form" data-testid="application-form">
       <div class="field">
         <label for="company">Company</label>
         <input id="company" v-model="form.company" placeholder="Company" required />

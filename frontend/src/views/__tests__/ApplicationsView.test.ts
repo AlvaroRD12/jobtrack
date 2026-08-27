@@ -20,7 +20,7 @@ describe('ApplicationsView', () => {
   it('renders the form and creates an application', async () => {
     expect(wrapper.text()).toContain('Applications');
 
-    await wrapper.get('form').trigger('submit.prevent');
+    await wrapper.get('[data-testid="application-form"]').trigger('submit.prevent');
     expect(wrapper.text()).toContain('Acme');
   });
 

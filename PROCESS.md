@@ -170,6 +170,58 @@ to trigger the bug.
 start of the filter, before any token parsing happens, so those routes
 are never affected by whatever the client happens to send.
 
+### 9. A fully implemented, fully tested feature that was unreachable (User Story 4)
+
+`DashboardView.vue` and `StatisticsPanel.vue` were built, wired to a
+working backend endpoint, and covered by passing tests — but there was no
+`vue-router` in the project at all. `main.ts` only ever mounted `App.vue`
+directly, with no routes and no navigation. The statistics page existed
+on disk and worked in isolation, but no user could ever reach it from the
+running application.
+
+**Found by**: actually opening the app in a browser and looking for the
+feature, instead of accepting "the component exists and its tests pass"
+as equivalent to "a user can use this."
+**Fixed by**: adding `vue-router` with routes for the existing
+Applications view and the new Dashboard view, plus a visible nav link
+between them.
+
+**Lesson**: a component's own test suite can never prove it's reachable.
+That has to be checked one level up, in the thing that's supposed to
+route to it.
+
+### 10. Wrapped API responses unwrapped one level too few — and a mock that hid it (User Story 4)
+
+The backend wraps every response as `{ "message": "...", "data": ... }`.
+`api/applications.ts` already unwrapped this correctly, but the new
+`api/statistics.ts` returned `response.data` directly instead of
+`response.data.data`. In the running UI, this meant the panel iterated
+over the wrapper object itself — rendering a couple of blank `":"` rows
+instead of real stage names and counts.
+
+This shipped with all tests green because `StatisticsPanel.test.ts`
+mocked the API functions to resolve directly to the raw arrays, which is
+not the shape the real functions returned before the fix. The mock
+described what the code *should* do, not what it *did* — so the test
+suite couldn't have caught this regardless of how thorough it looked.
+
+**Found by**: comparing the real rendered output (blank rows with a lone
+`:`) against the already-confirmed-correct API response from earlier
+manual curl testing, and recognizing the exact shape of a
+"one-level-too-shallow unwrap" bug from having seen the pattern before.
+**Fixed by**: unwrapping to `response.data.data` in `statistics.ts`,
+matching `applications.ts`, and correcting the test mocks to match the
+real (wrapped) response shape instead of the assumed one.
+
+**Recurring pattern across this project**: this is the third time a bug
+came from the frontend's assumption about a data shape or field name not
+matching what the backend actually sent (see also #7, the
+`nextFollowUpDate`/`followUpDate` mismatch, and #8's related stale-token
+issue). The general lesson: whenever a new frontend module talks to an
+existing backend contract, check the *actual* response shape and field
+names against a real request — never assume they match a mental model or
+a mock, even one written by the same agent that wrote the endpoint.
+
 ## Why this matters
 
 None of these were exotic bugs. Each one is the kind of thing a code
