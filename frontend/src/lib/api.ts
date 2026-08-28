@@ -3,7 +3,7 @@ import axios from 'axios';
 const TOKEN_STORAGE_KEY = 'jobtrack_token';
 
 export const apiClient = axios.create({
-  baseURL: '/api'
+  baseURL: import.meta.env.VITE_API_BASE_URL ? import.meta.env.VITE_API_BASE_URL : '/api'
 });
 
 export function setAuthToken(token: string | null) {
