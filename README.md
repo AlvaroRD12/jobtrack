@@ -10,6 +10,17 @@ See [`PROCESS.md`](./PROCESS.md) for a detailed account of how this was
 built — including the real bugs found along the way and how each one was
 diagnosed and fixed.
 
+## Live demo
+
+- App: https://jobtrack-frontend-n60i.onrender.com
+- Backend health check: https://jobtrack-77np.onrender.com/actuator/health
+
+The backend runs on Render's free tier and spins down after 15 minutes of
+inactivity — the first request may take 30-60 seconds to respond while it
+wakes up. There's no registration form in the UI yet, so create an
+account first via the backend's `/api/auth/register` endpoint (see
+[Getting started](#getting-started) below) before logging in.
+
 ## Features
 
 - **Application tracking**: create, edit, archive, and delete job
