@@ -222,6 +222,51 @@ existing backend contract, check the *actual* response shape and field
 names against a real request — never assume they match a mental model or
 a mock, even one written by the same agent that wrote the endpoint.
 
+### 11. The first real cross-origin request in the project (Deployment)
+
+Everything up to this point — local dev, Docker testing, even the
+production Docker container — always had the frontend and backend on the
+same origin (via Vite's dev proxy) or wasn't tested from a browser at
+all. The first time the deployed frontend (on Render's static site
+domain) tried to talk to the deployed backend (on a different Render
+domain), the browser's CORS preflight `OPTIONS` request came back `403
+Forbidden`, blocking the real request before it was ever sent.
+
+**Found by**: testing the production build (`npm run preview`) against
+the real deployed backend before deploying the frontend — catching this
+locally instead of discovering it only after the frontend was live.
+**Fixed by**: adding an explicit `CorsConfigurationSource` bean listing
+allowed origins (including a configurable `FRONTEND_URL` environment
+variable for the real production frontend domain), permitting `OPTIONS`
+requests without authentication, and wiring `.cors()` into the security
+filter chain.
+
+**Lesson**: same-origin setups (dev proxies, single-container tests) can
+fully hide a CORS bug until the exact moment two independently deployed
+services try to talk to each other for the first time. Test the actual
+cross-origin path — even locally, with `npm run preview` against a real
+remote backend — before assuming a deployment will "just work."
+
+## Deployment
+
+The application is deployed with entirely free-tier infrastructure:
+
+- **Database**: [Neon](https://neon.tech) — serverless PostgreSQL, free
+  tier does not expire (unlike most providers' free database tiers,
+  which are time-limited).
+- **Backend**: [Render](https://render.com) Web Service, deployed from a
+  multi-stage Docker build. Free tier spins down after 15 minutes of
+  inactivity; the first request after that takes 30-60 seconds to wake
+  up.
+- **Frontend**: Render Static Site, built from the same repository.
+
+The backend uses a Spring profile (`prod`) activated via
+`SPRING_PROFILES_ACTIVE`, keeping local development on H2 completely
+unaffected by the production PostgreSQL configuration. The Docker image's
+entrypoint reads this variable at runtime rather than hardcoding it, so
+the same image can be run locally against H2 for quick manual testing or
+against Neon for a production-like check before deploying.
+
 ## Why this matters
 
 None of these were exotic bugs. Each one is the kind of thing a code
