@@ -1,0 +1,14 @@
+target/
+.git/
+.neon/
+.env.local
+.mvn/
+**/Dockerfile
+**/.dockerignore
+HHELP.md
+README.md
+LICENSE
+NOTICE
+**/logs
+**/tmp
+**/*.log
