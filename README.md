@@ -119,9 +119,16 @@ specs/001-jobtrack-app/
 
 - No registration form in the UI yet — new users must be created via the
   `/api/auth/register` endpoint directly.
-- No production deployment yet; runs locally with an in-memory database.
 - Minor visual polish still pending (see `PROCESS.md` for the running
   list of non-blocking issues found during development).
+- `npm audit` on the frontend reports 5 vulnerabilities (1 critical, 1
+  high, 3 moderate) in `vite`/`vitest`/`esbuild`. These are dev-only
+  dependencies never included in the production build (`dist/`), and the
+  specific advisories require either the dev server to be exposed
+  externally or the Vitest UI (`vitest --ui`, not used in this project)
+  to be running — neither applies here. Fixing them requires a major
+  version bump (`vite@8`, `vitest@4`) with breaking changes, deliberately
+  deferred rather than applied under time pressure.
 
 ## License
 
