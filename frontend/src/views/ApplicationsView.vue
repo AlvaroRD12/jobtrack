@@ -1,58 +1,84 @@
 <template>
-  <section class="applications-view">
-    <h1>Applications</h1>
+  <section class="applications-view space-y-8">
+    <h1 class="text-3xl font-bold tracking-tight text-neutral-900">Applications</h1>
 
-    <div class="auth-tabs" role="tablist" aria-label="Account access">
-      <button type="button" :class="{ active: authMode === 'login' }" @click="showLogin">Log in</button>
-      <button type="button" :class="{ active: authMode === 'register' }" @click="showRegister">Register</button>
+    <div class="auth-tabs flex flex-wrap gap-2" role="tablist" aria-label="Account access">
+      <button
+        type="button"
+        class="rounded-md border border-neutral-200 px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+        :class="authMode === 'login'
+          ? 'bg-primary text-white hover:bg-primary-700'
+          : 'bg-white text-neutral-700 hover:bg-neutral-100'"
+        @click="showLogin"
+      >Log in</button>
+      <button
+        type="button"
+        class="rounded-md border border-neutral-200 px-4 py-2 text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+        :class="authMode === 'register'
+          ? 'bg-primary text-white hover:bg-primary-700'
+          : 'bg-white text-neutral-700 hover:bg-neutral-100'"
+        @click="showRegister"
+      >Register</button>
     </div>
 
-    <p v-if="authMessage" class="auth-message" role="status">{{ authMessage }}</p>
-    <p v-if="authError" class="auth-error" role="alert">{{ authError }}</p>
+    <p v-if="authMessage" class="auth-message rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800" role="status">{{ authMessage }}</p>
+    <p v-if="authError" class="auth-error rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-overdue-700" role="alert">{{ authError }}</p>
 
-    <form v-if="authMode === 'login'" class="login-form" data-testid="login-form" @submit.prevent="login">
-      <input v-model="auth.username" placeholder="Username" required />
-      <input v-model="auth.password" type="password" placeholder="Password" required />
-      <button type="submit">Log in</button>
+    <form v-if="authMode === 'login'" class="login-form grid gap-4 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-[1fr_1fr_auto] sm:items-end" data-testid="login-form" @submit.prevent="login">
+      <label class="grid gap-1.5 text-sm font-medium text-neutral-700">
+        Username
+        <input v-model="auth.username" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" placeholder="Username" required />
+      </label>
+      <label class="grid gap-1.5 text-sm font-medium text-neutral-700">
+        Password
+        <input v-model="auth.password" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" type="password" placeholder="Password" required />
+      </label>
+      <button type="submit" class="rounded-md bg-primary px-4 py-2 font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">Log in</button>
     </form>
 
-    <form v-else class="login-form" data-testid="register-form" @submit.prevent="register">
-      <input v-model="auth.username" placeholder="Username" required />
-      <input v-model="auth.password" type="password" placeholder="Password" required />
-      <button type="submit">Register</button>
+    <form v-else class="login-form grid gap-4 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-[1fr_1fr_auto] sm:items-end" data-testid="register-form" @submit.prevent="register">
+      <label class="grid gap-1.5 text-sm font-medium text-neutral-700">
+        Username
+        <input v-model="auth.username" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" placeholder="Username" required />
+      </label>
+      <label class="grid gap-1.5 text-sm font-medium text-neutral-700">
+        Password
+        <input v-model="auth.password" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" type="password" placeholder="Password" required />
+      </label>
+      <button type="submit" class="rounded-md bg-primary px-4 py-2 font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">Register</button>
     </form>
 
-    <form @submit.prevent="submitForm" class="application-form" data-testid="application-form">
-      <div class="field">
-        <label for="company">Company</label>
-        <input id="company" v-model="form.company" placeholder="Company" required />
+    <form @submit.prevent="submitForm" class="application-form grid gap-5 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-2" data-testid="application-form">
+      <div class="field grid gap-1.5">
+        <label for="company" class="text-sm font-medium text-neutral-700">Company</label>
+        <input id="company" v-model="form.company" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" placeholder="Company" required />
       </div>
-      <div class="field">
-        <label for="position">Position</label>
-        <input id="position" v-model="form.position" placeholder="Position" required />
+      <div class="field grid gap-1.5">
+        <label for="position" class="text-sm font-medium text-neutral-700">Position</label>
+        <input id="position" v-model="form.position" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" placeholder="Position" required />
       </div>
-      <div class="field">
-        <label for="source">Source</label>
-        <input id="source" v-model="form.source" placeholder="Source" />
+      <div class="field grid gap-1.5">
+        <label for="source" class="text-sm font-medium text-neutral-700">Source</label>
+        <input id="source" v-model="form.source" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" placeholder="Source" />
       </div>
-      <div class="field">
-        <label for="applicationDate">Application Date</label>
-        <input id="applicationDate" v-model="form.applicationDate" type="date" required />
+      <div class="field grid gap-1.5">
+        <label for="applicationDate" class="text-sm font-medium text-neutral-700">Application Date</label>
+        <input id="applicationDate" v-model="form.applicationDate" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary-100" type="date" required />
       </div>
-      <div class="field">
-        <label for="stage">Stage</label>
-        <input id="stage" v-model="form.stage" placeholder="Stage" />
+      <div class="field grid gap-1.5">
+        <label for="stage" class="text-sm font-medium text-neutral-700">Stage</label>
+        <input id="stage" v-model="form.stage" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" placeholder="Stage" />
       </div>
-      <div class="field">
-        <label for="notes">Notes</label>
-        <textarea id="notes" v-model="form.notes" placeholder="Notes"></textarea>
+      <div class="field grid gap-1.5">
+        <label for="notes" class="text-sm font-medium text-neutral-700">Notes</label>
+        <textarea id="notes" v-model="form.notes" class="min-h-24 resize-y rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" placeholder="Notes"></textarea>
       </div>
-      <div class="field follow-up-field">
-        <label for="followUpDate">Follow-up Date</label>
-        <input id="followUpDate" v-model="form.nextFollowUpDate" type="date" :class="{ overdue: isFollowUpOverdue }">
-        <span v-if="isFollowUpOverdue" class="overdue-warning">Overdue!</span>
+      <div class="field follow-up-field grid gap-1.5">
+        <label for="followUpDate" class="text-sm font-medium text-neutral-700">Follow-up Date</label>
+        <input id="followUpDate" v-model="form.nextFollowUpDate" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition focus:border-primary focus:ring-2 focus:ring-primary-100" :class="{ overdue: isFollowUpOverdue, 'border-overdue-600 bg-red-50 text-overdue-700 ring-1 ring-overdue-500': isFollowUpOverdue }" type="date">
+        <span v-if="isFollowUpOverdue" class="overdue-warning inline-flex w-fit rounded-full bg-red-100 px-2.5 py-1 text-xs font-semibold text-overdue-700">Overdue!</span>
       </div>
-      <button type="submit" class="save-button">Save</button>
+      <button type="submit" class="save-button sm:col-span-2 rounded-md bg-primary px-4 py-3 font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">Save</button>
     </form>
 
     <KanbanBoard v-if="applications.length" :applications="applications" />
@@ -203,105 +229,3 @@ onMounted(async () => {
   }
 });
 </script>
-
-<style scoped>
-.application-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1rem;
-  align-items: stretch;
-}
-.application-form .field {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 200px;
-}
-.application-form .field label {
-  margin-bottom: 0.25rem;
-  font-weight: 600;
-}
-.application-form .field input,
-.application-form .field textarea {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font: inherit;
-}
-.application-form .field textarea {
-  min-height: 80px;
-  resize: vertical;
-}
-.application-form .follow-up-field {
-  /* same as .field */
-}
-.application-form .overdue-warning {
-  margin-left: 0.5rem;
-  color: #ef4444;
-  font-weight: 600;
-}
-.application-form .save-button {
-  width: 100%;
-  padding: 0.75rem;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 1rem;
-  cursor: pointer;
-  margin-top: 1rem;
-}
-.application-form .save-button:hover {
-  background-color: #1d4ed8;
-}
-
-/* Keep existing login form styling */
-.login-form {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 2rem;
-}
-.auth-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
-}
-.auth-tabs button {
-  padding: 0.5rem 1rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: white;
-  cursor: pointer;
-}
-.auth-tabs button.active {
-  background-color: #2563eb;
-  color: white;
-  border-color: #2563eb;
-}
-.auth-message,
-.auth-error {
-  margin: 0 0 0.75rem;
-}
-.auth-message {
-  color: #166534;
-}
-.auth-error {
-  color: #b91c1c;
-}
-.login-form input {
-  padding: 0.5rem;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-.login-form button {
-  padding: 0.5rem 1rem;
-  background-color: #2563eb;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.login-form button:hover {
-  background-color: #1d4ed8;
-}
-</style>
