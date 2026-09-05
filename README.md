@@ -23,9 +23,8 @@ Try it with the demo account:
 - Username: `demo`
 - Password: `demo1234`
 
-There's no registration form in the UI yet (see [Known limitations](#known-limitations)),
-so this shared demo account is the quickest way to explore the app
-without using the API directly.
+The Applications page includes a registration form, so you can create a
+separate account for exploring the app.
 
 ## Features
 
@@ -80,8 +79,7 @@ to `/api/*` are proxied to the backend.
 
 ### Using the app
 
-1. Register a user via `POST /api/auth/register` (no registration form
-   exists in the UI yet — see [Known limitations](#known-limitations)).
+1. Register a user through the **Register** tab on the Applications page.
 2. Log in through the UI with those credentials.
 3. Use the **Applications** page to create and manage applications, and
    the **Dashboard** page for statistics.
@@ -123,8 +121,6 @@ specs/001-jobtrack-app/
 
 ## Known limitations
 
-- No registration form in the UI yet — new users must be created via the
-  `/api/auth/register` endpoint directly.
 - Minor visual polish still pending (see `PROCESS.md` for the running
   list of non-blocking issues found during development).
 - `npm audit` on the frontend reports 5 vulnerabilities (1 critical, 1

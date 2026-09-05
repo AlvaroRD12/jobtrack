@@ -2,10 +2,24 @@
   <section class="applications-view">
     <h1>Applications</h1>
 
-    <form class="login-form" @submit.prevent="login">
+    <div class="auth-tabs" role="tablist" aria-label="Account access">
+      <button type="button" :class="{ active: authMode === 'login' }" @click="showLogin">Log in</button>
+      <button type="button" :class="{ active: authMode === 'register' }" @click="showRegister">Register</button>
+    </div>
+
+    <p v-if="authMessage" class="auth-message" role="status">{{ authMessage }}</p>
+    <p v-if="authError" class="auth-error" role="alert">{{ authError }}</p>
+
+    <form v-if="authMode === 'login'" class="login-form" data-testid="login-form" @submit.prevent="login">
       <input v-model="auth.username" placeholder="Username" required />
       <input v-model="auth.password" type="password" placeholder="Password" required />
       <button type="submit">Log in</button>
+    </form>
+
+    <form v-else class="login-form" data-testid="register-form" @submit.prevent="register">
+      <input v-model="auth.username" placeholder="Username" required />
+      <input v-model="auth.password" type="password" placeholder="Password" required />
+      <button type="submit">Register</button>
     </form>
 
     <form @submit.prevent="submitForm" class="application-form" data-testid="application-form">
@@ -66,6 +80,9 @@ interface ApplicationRecord {
 }
 
 const applications = ref<ApplicationRecord[]>([]);
+const authMode = ref<'login' | 'register'>('login');
+const authMessage = ref('');
+const authError = ref('');
 const auth = reactive({
   username: '',
   password: ''
@@ -92,14 +109,52 @@ async function loadApplications() {
 }
 
 async function login() {
-  const response = await apiClient.post('/auth/login', {
-    username: auth.username,
-    password: auth.password
-  });
+  authMessage.value = '';
+  authError.value = '';
+  try {
+    const response = await apiClient.post('/auth/login', {
+      username: auth.username,
+      password: auth.password
+    });
 
-  const token = response.data?.data;
-  setAuthToken(token ?? null);
-  await loadApplications();
+    const token = response.data?.data;
+    setAuthToken(token ?? null);
+    await loadApplications();
+    authMessage.value = 'Logged in successfully.';
+  } catch (error) {
+    authError.value = getAuthErrorMessage(error);
+  }
+}
+
+async function register() {
+  authError.value = '';
+  authMessage.value = '';
+  try {
+    await apiClient.post('/auth/register', {
+      username: auth.username,
+      password: auth.password
+    });
+    authMode.value = 'login';
+    authMessage.value = 'Registration successful. Please log in.';
+  } catch (error) {
+    authError.value = getAuthErrorMessage(error);
+  }
+}
+
+function getAuthErrorMessage(error: unknown) {
+  const response = (error as { response?: { data?: { message?: string } } }).response;
+  return response?.data?.message ?? 'Unable to complete the request.';
+}
+
+function showLogin() {
+  authMode.value = 'login';
+  authError.value = '';
+}
+
+function showRegister() {
+  authMode.value = 'register';
+  authMessage.value = '';
+  authError.value = '';
 }
 
 async function submitForm() {
@@ -205,6 +260,33 @@ onMounted(async () => {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 2rem;
+}
+.auth-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.auth-tabs button {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+}
+.auth-tabs button.active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+.auth-message,
+.auth-error {
+  margin: 0 0 0.75rem;
+}
+.auth-message {
+  color: #166534;
+}
+.auth-error {
+  color: #b91c1c;
 }
 .login-form input {
   padding: 0.5rem;
