@@ -17,9 +17,15 @@ diagnosed and fixed.
 
 The backend runs on Render's free tier and spins down after 15 minutes of
 inactivity — the first request may take 30-60 seconds to respond while it
-wakes up. There's no registration form in the UI yet, so create an
-account first via the backend's `/api/auth/register` endpoint (see
-[Getting started](#getting-started) below) before logging in.
+wakes up.
+
+Try it with the demo account:
+- Username: `demo`
+- Password: `demo1234`
+
+There's no registration form in the UI yet (see [Known limitations](#known-limitations)),
+so this shared demo account is the quickest way to explore the app
+without using the API directly.
 
 ## Features
 
