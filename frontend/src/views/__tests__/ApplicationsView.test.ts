@@ -1,6 +1,14 @@
-import { mount } from '@vue/test-utils';
+import { flushPromises, mount } from '@vue/test-utils';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import ApplicationsView from '../ApplicationsView.vue';
+
+const { post } = vi.hoisted(() => ({ post: vi.fn() }));
+
+vi.mock('../../lib/api', () => ({
+  apiClient: { post },
+  getStoredAuthToken: vi.fn().mockReturnValue(null),
+  setAuthToken: vi.fn()
+}));
 
 vi.mock('../../api/applications', () => ({
   listApplications: vi.fn().mockResolvedValue({ data: [] }),
@@ -14,6 +22,7 @@ describe('ApplicationsView', () => {
   let wrapper: any;
 
   beforeEach(() => {
+    post.mockReset();
     wrapper = mount(ApplicationsView);
   });
 
@@ -55,5 +64,44 @@ describe('ApplicationsView', () => {
 
     // Check that the overdue warning is NOT displayed
     expect(wrapper.find('.overdue-warning').exists()).toBe(false);
+  });
+
+  it('registers a new user and directs them to log in', async () => {
+    post.mockResolvedValueOnce({ data: { message: 'User registered', data: 'ok' } });
+
+    await wrapper.get('.auth-tabs button:nth-child(2)').trigger('click');
+    await wrapper.get('[data-testid="register-form"] input[placeholder="Username"]').setValue('new-user');
+    await wrapper.get('[data-testid="register-form"] input[type="password"]').setValue('password');
+    await wrapper.get('[data-testid="register-form"]').trigger('submit.prevent');
+    await flushPromises();
+
+    expect(post).toHaveBeenCalledWith('/auth/register', { username: 'new-user', password: 'password' });
+    expect(wrapper.find('[data-testid="login-form"]').exists()).toBe(true);
+    expect(wrapper.text()).toContain('Registration successful. Please log in.');
+  });
+
+  it('shows a success message after login', async () => {
+    post.mockResolvedValueOnce({ data: { data: 'login-token' } });
+
+    await wrapper.get('[data-testid="login-form"] input[placeholder="Username"]').setValue('new-user');
+    await wrapper.get('[data-testid="login-form"] input[type="password"]').setValue('password');
+    await wrapper.get('[data-testid="login-form"]').trigger('submit.prevent');
+    await flushPromises();
+
+    expect(post).toHaveBeenCalledWith('/auth/login', { username: 'new-user', password: 'password' });
+    expect(wrapper.find('[role="status"]').text()).toBe('Logged in successfully.');
+  });
+
+  it('shows the duplicate username error', async () => {
+    post.mockRejectedValueOnce({ response: { data: { message: 'User already exists' } } });
+
+    await wrapper.get('.auth-tabs button:nth-child(2)').trigger('click');
+    await wrapper.get('[data-testid="register-form"] input[placeholder="Username"]').setValue('existing-user');
+    await wrapper.get('[data-testid="register-form"] input[type="password"]').setValue('password');
+    await wrapper.get('[data-testid="register-form"]').trigger('submit.prevent');
+    await flushPromises();
+
+    expect(wrapper.find('[role="alert"]').text()).toBe('User already exists');
+    expect(wrapper.find('[data-testid="register-form"]').exists()).toBe(true);
   });
 });
