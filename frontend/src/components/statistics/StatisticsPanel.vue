@@ -2,7 +2,11 @@
   <section class="statistics-panel space-y-6">
     <h2 class="text-2xl font-bold tracking-tight text-neutral-900">Dashboard Statistics</h2>
 
-    <div v-if="state.loading" class="loading rounded-lg border border-neutral-200 bg-white px-5 py-10 text-center text-sm text-neutral-500 shadow-sm">Loading statistics...</div>
+    <div v-if="state.loading" class="loading rounded-lg border border-neutral-200 bg-white px-5 py-10 text-center text-sm text-neutral-500 shadow-sm" role="status">
+      <span class="mx-auto mb-3 block h-6 w-6 animate-spin rounded-full border-2 border-primary-200 border-t-primary" aria-hidden="true"></span>
+      <p>Loading statistics...</p>
+      <p v-if="state.wakeupMessage" class="mt-2 text-primary-700">{{ state.wakeupMessage }}</p>
+    </div>
     <div v-else-if="state.error" class="error rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-overdue-700">{{ state.error }}</div>
     <div v-else class="stats-content grid gap-6">
       <!-- Funnel Counts -->
@@ -46,21 +50,29 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive } from 'vue';
+import { onMounted, onUnmounted, reactive } from 'vue';
 import { getFunnelCounts, getActivityOverTime, getConversionRates } from '../../api/statistics';
 
 const state = reactive({
   loading: true,
+  wakeupMessage: '',
   error: null as string | null,
   funnelCounts: [] as { stage: string; count: number }[],
   activityOverTime: [] as { date: string; count: number }[],
   conversionRates: [] as { fromStage: string; toStage: string; rate: number }[]
 });
 
+let wakeupTimer: ReturnType<typeof setTimeout> | undefined;
+
 async function loadStatistics() {
   try {
     state.loading = true;
     state.error = null;
+    state.wakeupMessage = '';
+    clearTimeout(wakeupTimer);
+    wakeupTimer = setTimeout(() => {
+      state.wakeupMessage = 'This may take up to a minute - the server is waking up.';
+    }, 5000);
 
     // Fetch all three statistics in parallel
     const [funnelResp, activityResp, conversionResp] = await Promise.all([
@@ -76,10 +88,16 @@ async function loadStatistics() {
     state.error = 'Failed to load statistics: ' + (err instanceof Error ? err.message : String(err));
   } finally {
     state.loading = false;
+    clearTimeout(wakeupTimer);
+    wakeupTimer = undefined;
   }
 }
 
 onMounted(() => {
   loadStatistics();
+});
+
+onUnmounted(() => {
+  clearTimeout(wakeupTimer);
 });
 </script>
