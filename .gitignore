@@ -24,7 +24,8 @@ hs_err_pid*
 replay_pid*
 
 # Spec Kit agent folder (puede contener credenciales)
-.github/
+.github/prompts/
+.github/agents/
 
 # Maven / build
 target/
