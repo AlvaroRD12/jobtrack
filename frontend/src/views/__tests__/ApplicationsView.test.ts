@@ -44,9 +44,9 @@ describe('ApplicationsView', () => {
   });
 
   it('displays overdue follow-up date warning', async () => {
-    // Set a past date in the follow-up field
-    const pastDate = '2026-01-01'; // Definitely in the past
-    await wrapper.get('#followUpDate').setValue(pastDate);
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 5);
+    await wrapper.get('#followUpDate').setValue(pastDate.toISOString().slice(0, 10));
 
     // Check if the overdue warning is displayed
     expect(wrapper.find('.overdue-warning').exists()).toBe(true);
@@ -57,9 +57,9 @@ describe('ApplicationsView', () => {
   });
 
   it('does not display overdue warning for future dates', async () => {
-    // Set a future date in the follow-up field
-    const futureDate = '2026-12-31'; // Definitely in the future
-    await wrapper.get('#followUpDate').setValue(futureDate);
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 30);
+    await wrapper.get('#followUpDate').setValue(futureDate.toISOString().slice(0, 10));
 
     // Check that the overdue warning is NOT displayed
     expect(wrapper.find('.overdue-warning').exists()).toBe(false);

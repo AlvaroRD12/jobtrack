@@ -13,12 +13,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -46,6 +43,7 @@ class ApplicationReminderTest {
     @Test
     void testFollowUpDateAndOverdueLogic() throws Exception {
         String token = registerAndLoginToken();
+        LocalDate today = LocalDate.now();
 
         // Create an application with a future follow-up date (not overdue)
         ApplicationRequest request = new ApplicationRequest(
@@ -55,7 +53,7 @@ class ApplicationReminderTest {
                 LocalDate.of(2026, 7, 28),
                 "Applied",
                 "Test notes",
-                LocalDate.of(2026, 9, 1) // Future date
+                today.plusDays(30)
         );
 
         MvcResult createResult = mockMvc.perform(post("/api/applications")
@@ -86,7 +84,7 @@ class ApplicationReminderTest {
                 LocalDate.of(2026, 7, 28),
                 "Applied",
                 "Updated test notes",
-                LocalDate.of(2026, 8, 1) // Past date
+                today.minusDays(5)
         );
 
         mockMvc.perform(put("/api/applications/{id}", id)
