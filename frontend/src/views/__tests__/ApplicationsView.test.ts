@@ -1,17 +1,21 @@
 import { flushPromises, mount } from '@vue/test-utils';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import ApplicationsView from '../ApplicationsView.vue';
 
-const { post } = vi.hoisted(() => ({ post: vi.fn() }));
+const { getStoredAuthToken, post, listApplications } = vi.hoisted(() => ({
+  getStoredAuthToken: vi.fn(),
+  post: vi.fn(),
+  listApplications: vi.fn()
+}));
 
 vi.mock('../../lib/api', () => ({
   apiClient: { post },
-  getStoredAuthToken: vi.fn().mockReturnValue(null),
+  getStoredAuthToken,
   setAuthToken: vi.fn()
 }));
 
 vi.mock('../../api/applications', () => ({
-  listApplications: vi.fn().mockResolvedValue({ data: [] }),
+  listApplications,
   createApplication: vi.fn().mockResolvedValue({ data: { id: 1, company: 'Acme', position: 'Engineer', stage: 'Applied' } }),
   updateApplication: vi.fn().mockResolvedValue({ data: { id: 1, company: 'Acme', position: 'Engineer', stage: 'Interview' } }),
   archiveApplication: vi.fn().mockResolvedValue({ data: { id: 1, archived: true } }),
@@ -23,7 +27,13 @@ describe('ApplicationsView', () => {
 
   beforeEach(() => {
     post.mockReset();
+    getStoredAuthToken.mockReturnValue(null);
+    listApplications.mockResolvedValue({ data: [] });
     wrapper = mount(ApplicationsView);
+  });
+
+  afterEach(() => {
+    wrapper.unmount();
   });
 
   it('renders the form and creates an application', async () => {
@@ -90,6 +100,55 @@ describe('ApplicationsView', () => {
 
     expect(post).toHaveBeenCalledWith('/auth/login', { username: 'new-user', password: 'password' });
     expect(wrapper.find('[role="status"]').text()).toBe('Logged in successfully.');
+  });
+
+  it('shows the login loading state until the request resolves', async () => {
+    let resolveLogin!: (value: { data: { data: string } }) => void;
+    post.mockReturnValueOnce(new Promise((resolve) => { resolveLogin = resolve; }));
+
+    await wrapper.get('[data-testid="login-form"]').trigger('submit.prevent');
+    expect(wrapper.get('[data-testid="login-form"] button').text()).toContain('Logging in...');
+    expect(wrapper.get('[data-testid="login-form"] button').attributes('disabled')).toBeDefined();
+    expect(wrapper.get('[data-testid="login-form"] button span').classes()).toContain('animate-spin');
+
+    resolveLogin({ data: { data: 'login-token' } });
+    await flushPromises();
+
+    expect(wrapper.get('[data-testid="login-form"] button').text()).toContain('Log in');
+    expect(wrapper.get('[data-testid="login-form"] button').attributes('disabled')).toBeUndefined();
+  });
+
+  it('shows the register loading state until the request resolves', async () => {
+    let resolveRegister!: (value: { data: { message: string; data: string } }) => void;
+    post.mockReturnValueOnce(new Promise((resolve) => { resolveRegister = resolve; }));
+
+    await wrapper.get('.auth-tabs button:nth-child(2)').trigger('click');
+    await wrapper.get('[data-testid="register-form"]').trigger('submit.prevent');
+    expect(wrapper.get('[data-testid="register-form"] button').text()).toContain('Registering...');
+    expect(wrapper.get('[data-testid="register-form"] button').attributes('disabled')).toBeDefined();
+
+    resolveRegister({ data: { message: 'User registered', data: 'ok' } });
+    await flushPromises();
+
+    expect(wrapper.find('[data-testid="login-form"]').exists()).toBe(true);
+  });
+
+  it('shows application loading until the initial list resolves', async () => {
+    let resolveApplications!: (value: { data: never[] }) => void;
+    listApplications.mockReturnValueOnce(new Promise((resolve) => { resolveApplications = resolve; }));
+    getStoredAuthToken.mockReturnValue('stored-token');
+
+    const loadingWrapper = mount(ApplicationsView);
+    await loadingWrapper.vm.$nextTick();
+    expect(loadingWrapper.get('[role="status"]').text()).toContain('Loading applications...');
+    expect(loadingWrapper.find('.animate-spin').exists()).toBe(true);
+
+    resolveApplications({ data: [] });
+    await flushPromises();
+
+    expect(loadingWrapper.find('[role="status"]').exists()).toBe(false);
+    expect(loadingWrapper.text()).toContain('No applications yet.');
+    loadingWrapper.unmount();
   });
 
   it('shows the duplicate username error', async () => {

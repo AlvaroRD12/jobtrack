@@ -23,6 +23,7 @@
 
     <p v-if="authMessage" class="auth-message rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-800" role="status">{{ authMessage }}</p>
     <p v-if="authError" class="auth-error rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-overdue-700" role="alert">{{ authError }}</p>
+    <p v-if="authWakeupMessage" class="rounded-md border border-primary-100 bg-primary-50 px-4 py-3 text-sm text-primary-700" role="status">{{ authWakeupMessage }}</p>
 
     <form v-if="authMode === 'login'" class="login-form grid gap-4 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-[1fr_1fr_auto] sm:items-end" data-testid="login-form" @submit.prevent="login">
       <label class="grid gap-1.5 text-sm font-medium text-neutral-700">
@@ -33,7 +34,10 @@
         Password
         <input v-model="auth.password" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" type="password" placeholder="Password" required />
       </label>
-      <button type="submit" class="rounded-md bg-primary px-4 py-2 font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">Log in</button>
+      <button type="submit" :disabled="authPending" class="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70">
+        <span v-if="authPending" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+        {{ authPending ? 'Logging in...' : 'Log in' }}
+      </button>
     </form>
 
     <form v-else class="login-form grid gap-4 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-[1fr_1fr_auto] sm:items-end" data-testid="register-form" @submit.prevent="register">
@@ -45,7 +49,10 @@
         Password
         <input v-model="auth.password" class="rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 shadow-sm outline-none transition placeholder:text-neutral-500 focus:border-primary focus:ring-2 focus:ring-primary-100" type="password" placeholder="Password" required />
       </label>
-      <button type="submit" class="rounded-md bg-primary px-4 py-2 font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">Register</button>
+      <button type="submit" :disabled="authPending" class="inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70">
+        <span v-if="authPending" class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true"></span>
+        {{ authPending ? 'Registering...' : 'Register' }}
+      </button>
     </form>
 
     <form @submit.prevent="submitForm" class="application-form grid gap-5 rounded-lg border border-neutral-200 bg-white p-5 shadow-sm sm:grid-cols-2" data-testid="application-form">
@@ -81,13 +88,18 @@
       <button type="submit" class="save-button sm:col-span-2 rounded-md bg-primary px-4 py-3 font-medium text-white shadow-sm transition hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">Save</button>
     </form>
 
-    <KanbanBoard v-if="applications.length" :applications="applications" />
+    <div v-if="applicationsLoading" class="rounded-lg border border-neutral-200 bg-white px-5 py-10 text-center text-sm text-neutral-600 shadow-sm" role="status">
+      <span class="mx-auto mb-3 block h-6 w-6 animate-spin rounded-full border-2 border-primary-200 border-t-primary" aria-hidden="true"></span>
+      <p>Loading applications...</p>
+      <p v-if="applicationsWakeupMessage" class="mt-2 text-primary-700">{{ applicationsWakeupMessage }}</p>
+    </div>
+    <KanbanBoard v-else-if="applications.length" :applications="applications" />
     <p v-else>No applications yet.</p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref, computed } from 'vue';
+import { onMounted, onUnmounted, reactive, ref, computed } from 'vue';
 import { archiveApplication, createApplication, deleteApplication, listApplications } from '../api/applications';
 import { apiClient, getStoredAuthToken, setAuthToken } from '../lib/api';
 import KanbanBoard from '../components/kanban/KanbanBoard.vue';
@@ -109,6 +121,12 @@ const applications = ref<ApplicationRecord[]>([]);
 const authMode = ref<'login' | 'register'>('login');
 const authMessage = ref('');
 const authError = ref('');
+const authPending = ref(false);
+const authWakeupMessage = ref('');
+const applicationsLoading = ref(false);
+const applicationsWakeupMessage = ref('');
+let authWakeupTimer: ReturnType<typeof setTimeout> | undefined;
+let applicationsWakeupTimer: ReturnType<typeof setTimeout> | undefined;
 const auth = reactive({
   username: '',
   password: ''
@@ -129,14 +147,33 @@ const isFollowUpOverdue = computed(() => {
 });
 
 async function loadApplications() {
-  const response = await listApplications();
-  const apps = response?.data ?? [];
-  applications.value = apps;
+  applicationsLoading.value = true;
+  applicationsWakeupMessage.value = '';
+  clearTimeout(applicationsWakeupTimer);
+  applicationsWakeupTimer = setTimeout(() => {
+    applicationsWakeupMessage.value = 'This may take up to a minute - the server is waking up.';
+  }, 5000);
+
+  try {
+    const response = await listApplications();
+    const apps = response?.data ?? [];
+    applications.value = apps;
+  } finally {
+    applicationsLoading.value = false;
+    clearTimeout(applicationsWakeupTimer);
+    applicationsWakeupTimer = undefined;
+  }
 }
 
 async function login() {
   authMessage.value = '';
   authError.value = '';
+  authPending.value = true;
+  authWakeupMessage.value = '';
+  clearTimeout(authWakeupTimer);
+  authWakeupTimer = setTimeout(() => {
+    authWakeupMessage.value = 'This may take up to a minute - the server is waking up.';
+  }, 5000);
   try {
     const response = await apiClient.post('/auth/login', {
       username: auth.username,
@@ -149,12 +186,23 @@ async function login() {
     authMessage.value = 'Logged in successfully.';
   } catch (error) {
     authError.value = getAuthErrorMessage(error);
+  } finally {
+    authPending.value = false;
+    authWakeupMessage.value = '';
+    clearTimeout(authWakeupTimer);
+    authWakeupTimer = undefined;
   }
 }
 
 async function register() {
   authError.value = '';
   authMessage.value = '';
+  authPending.value = true;
+  authWakeupMessage.value = '';
+  clearTimeout(authWakeupTimer);
+  authWakeupTimer = setTimeout(() => {
+    authWakeupMessage.value = 'This may take up to a minute - the server is waking up.';
+  }, 5000);
   try {
     await apiClient.post('/auth/register', {
       username: auth.username,
@@ -164,6 +212,11 @@ async function register() {
     authMessage.value = 'Registration successful. Please log in.';
   } catch (error) {
     authError.value = getAuthErrorMessage(error);
+  } finally {
+    authPending.value = false;
+    authWakeupMessage.value = '';
+    clearTimeout(authWakeupTimer);
+    authWakeupTimer = undefined;
   }
 }
 
@@ -227,5 +280,10 @@ onMounted(async () => {
   if (getStoredAuthToken()) {
     await loadApplications();
   }
+});
+
+onUnmounted(() => {
+  clearTimeout(authWakeupTimer);
+  clearTimeout(applicationsWakeupTimer);
 });
 </script>
