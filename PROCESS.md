@@ -247,6 +247,75 @@ services try to talk to each other for the first time. Test the actual
 cross-origin path — even locally, with `npm run preview` against a real
 remote backend — before assuming a deployment will "just work."
 
+### 12. Later frontend work: registration, redesign, and loading states
+
+After the initial deployment, three more rounds of work followed the
+same discipline as the original four user stories — each on its own
+branch, verified manually before merging:
+
+- **Registration UI**: the live demo initially had no way to create an
+  account except calling the API directly. Added a login/register tab
+  switcher to the existing auth form, reusing the backend's existing
+  duplicate-username error handling rather than adding new backend
+  logic.
+- **Visual redesign**: the UI was functional but visually plain —
+  unstyled inputs, no consistent spacing. Adopted Tailwind CSS in three
+  incremental phases (app shell/navigation, then auth/application forms,
+  then the kanban board and statistics dashboard), verifying each phase
+  visually in the browser before moving to the next, rather than
+  restyling everything in one pass.
+- **Cold-start loading states**: the deployed backend (Render's free
+  tier) takes 30-60 seconds to respond after being idle, and the UI gave
+  no indication anything was happening during that wait — buttons just
+  looked frozen. Added spinners, disabled states, and a "the server is
+  waking up" message that appears after a few seconds of delay, across
+  login, registration, and data loading.
+
+### 13. A `.gitignore` rule silently blocking the CI workflow itself
+
+Earlier in the project, `.github/` had been added to `.gitignore`
+wholesale to keep a coding agent's local prompt/config files
+(`.github/prompts/`, `.github/agents/`) out of version control. When a
+GitHub Actions workflow was later added at `.github/workflows/ci.yml`,
+it was silently excluded by that same blanket rule — `git add` reported
+nothing to commit, with no error to explain why.
+
+**Found by**: noticing that a file confirmed created on disk never
+showed up in `git status`, and checking `git status --ignored`
+specifically rather than assuming the file simply hadn't been written.
+**Fixed by**: narrowing the `.gitignore` rule from `.github/` to the two
+specific subdirectories that actually needed excluding
+(`.github/prompts/`, `.github/agents/`), so `.github/workflows/` stays
+tracked.
+
+### 14. Time-bomb dates in tests, caught by CI on its first real run
+
+With CI now running on every pull request, the very first PR to use it
+failed — not because of a real bug in the application, but because a
+test asserted `expected: <false> but was: <true>` for an overdue-date
+check. The test hardcoded an absolute date (`LocalDate.of(2026, 9, 1)`,
+commented `// Future date`) that was genuinely in the future when the
+test was written, but had since become the past as real time passed
+during the project. A repository-wide search found two more of the same
+pattern in frontend tests.
+
+**Found by**: CI running the suite against the real current date on a
+fresh checkout — something that had never happened before, since local
+runs on a developer machine only ever reflect whatever "today" happens
+to be at that moment, and the bug is invisible until the calendar
+catches up.
+**Fixed by**: replacing every hardcoded absolute date used to represent
+"past" or "future" with a date computed relative to
+`LocalDate.now()` (backend) / `new Date()` (frontend), so the tests stay
+correct regardless of when they run.
+
+**Lesson**: this is exactly the kind of bug that justified setting up CI
+in the first place — it had been sitting in the test suite for weeks,
+invisible on any single developer's machine, and would only ever have
+surfaced by accident once the hardcoded date arrived. Continuous
+integration catches this class of bug specifically because it runs
+against *today*, every time, automatically.
+
 ## Deployment
 
 The application is deployed with entirely free-tier infrastructure:
@@ -266,6 +335,15 @@ unaffected by the production PostgreSQL configuration. The Docker image's
 entrypoint reads this variable at runtime rather than hardcoding it, so
 the same image can be run locally against H2 for quick manual testing or
 against Neon for a production-like check before deploying.
+
+## Continuous Integration
+
+A GitHub Actions workflow (`.github/workflows/ci.yml`) runs the full
+test suite — backend (`mvn clean test`) and frontend (`npm test`) — on
+every push and pull request targeting `main`, as two parallel jobs. It
+runs tests only; deployment stays manual via Render's own auto-deploy on
+merge to `main`. See issue #13 and #14 above for what this immediately
+caught.
 
 ## Why this matters
 
