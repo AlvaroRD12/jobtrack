@@ -1,5 +1,7 @@
 # JobTrack
 
+![CI](https://github.com/AlvaroRD12/jobtrack/actions/workflows/ci.yml/badge.svg)
+
 A personal job application tracker with a kanban board, stage tracking,
 follow-up reminders, and a statistics dashboard. Built with Spring Boot +
 JPA on the backend and Vue 3 on the frontend, developed using
@@ -43,10 +45,12 @@ separate account for exploring the app.
 ## Tech stack
 
 - **Backend**: Spring Boot 3, Spring Data JPA, Spring Security, JJWT,
-  H2 (in-memory, for local development).
+  H2 (local development) / PostgreSQL via Neon (production), Docker.
 - **Frontend**: Vue 3 (Composition API), Vue Router, Axios, Vite.
 - **Testing**: JUnit 5 / Spring Boot Test on the backend, Vitest / Vue
   Test Utils on the frontend.
+- **CI/CD**: GitHub Actions (test suite on every push/PR), Render
+  (auto-deploy on merge to `main`).
 
 ## Getting started
 
@@ -121,8 +125,6 @@ specs/001-jobtrack-app/
 
 ## Known limitations
 
-- Minor visual polish still pending (see `PROCESS.md` for the running
-  list of non-blocking issues found during development).
 - `npm audit` on the frontend reports 5 vulnerabilities (1 critical, 1
   high, 3 moderate) in `vite`/`vitest`/`esbuild`. These are dev-only
   dependencies never included in the production build (`dist/`), and the
