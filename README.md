@@ -100,6 +100,12 @@ cd frontend
 npm test
 ```
 
+## API documentation
+
+Interactive API docs (Swagger UI) are available at
+`/swagger-ui/index.html` on the backend. Locally:
+http://localhost:8080/swagger-ui/index.html
+
 ## Project structure
 
 ```

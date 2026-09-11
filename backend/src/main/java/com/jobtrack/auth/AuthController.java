@@ -16,9 +16,11 @@ import org.springframework.web.server.ResponseStatusException;
 import com.jobtrack.common.ApiResponse;
 
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
 
 @RestController
 @RequestMapping("/api/auth")
+@SecurityRequirements
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
